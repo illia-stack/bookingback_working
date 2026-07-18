@@ -1,0 +1,201 @@
+<?php
+
+header("Content-Type: application/json");
+
+require_once __DIR__ . '/../middleware/auth.php';
+
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+
+if (
+    $_SERVER['REQUEST_METHOD'] !== "POST"
+    ||
+    $path !== "/stripe/create-session"
+) {
+
+    http_response_code(404);
+    exit;
+
+}
+
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+
+\Stripe\Stripe::setApiKey(
+    getenv("STRIPE_SECRET_KEY")
+);
+
+
+
+$input = json_decode(
+    file_get_contents("php://input"),
+    true
+);
+
+
+
+if (
+    empty($input["booking_id"])
+) {
+
+    http_response_code(400);
+
+    echo json_encode([
+
+        "success"=>false,
+
+        "message"=>"Missing booking id"
+
+    ]);
+
+    exit;
+}
+
+
+
+// get booking
+
+$stmt = $pdo->prepare(
+"SELECT 
+    b.*,
+    p.title
+
+ FROM bookings b
+
+ JOIN properties p
+
+ ON p.id=b.property_id
+
+ WHERE b.id=:id
+ AND b.user_id=:user_id"
+);
+
+
+$stmt->execute([
+
+":id"=>$input["booking_id"],
+
+":user_id"=>$_SESSION['user']['id']
+
+]);
+
+
+$booking=$stmt->fetch();
+
+
+
+if(!$booking){
+
+    http_response_code(404);
+
+    echo json_encode([
+
+        "success"=>false,
+
+        "message"=>"Booking not found"
+
+    ]);
+
+    exit;
+}
+
+
+
+$frontend =
+    getenv("FRONTEND_URL");
+
+
+
+
+$session = \Stripe\Checkout\Session::create([
+
+
+    "payment_method_types"=>[
+
+        "card"
+
+    ],
+
+
+    "line_items"=>[[
+
+        "price_data"=>[
+
+            "currency"=>"eur",
+
+            "product_data"=>[
+
+                "name"=>$booking["title"]
+
+            ],
+
+            "unit_amount"=>
+                intval($booking["total_price"] * 100)
+
+        ],
+
+        "quantity"=>1
+
+    ]],
+
+
+    "mode"=>"payment",
+
+
+    "success_url"=>
+
+        $frontend .
+        "/success?booking_id=" .
+        $booking["id"],
+
+
+    "cancel_url"=>
+
+        $frontend .
+        "/cancel?booking_id=" .
+        $booking["id"]
+
+]);
+
+
+
+
+
+// save stripe session id
+
+$stmt=$pdo->prepare(
+
+    "UPDATE bookings
+
+     SET stripe_session_id=:session,
+
+     updated_at=NOW()
+
+     WHERE id=:id"
+
+);
+
+
+$stmt->execute([
+
+    ":session"=>$session->id,
+
+    ":id"=>$booking["id"]
+
+]);
+
+
+
+
+echo json_encode([
+
+    "success"=>true,
+
+    "data"=>[
+
+        "checkout_url"=>$session->url
+
+    ]
+
+]);
