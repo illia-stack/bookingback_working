@@ -1,16 +1,14 @@
 <?php
 
-ini_set('session.cookie_samesite', 'None');
-ini_set('session.cookie_secure', '1');
-ini_set('session.cookie_httponly', '1');
-ini_set('session.cookie_path', '/');
+if (session_status() === PHP_SESSION_NONE) {
 
-session_start();
+    ini_set('session.cookie_samesite', 'None');
+    ini_set('session.cookie_secure', '1');
+    ini_set('session.cookie_httponly', '1');
+    ini_set('session.cookie_path', '/');
 
-var_dump(getenv('DB_HOST'));
-var_dump(getenv('DB_DATABASE'));
-var_dump(getenv('DB_USERNAME'));
-exit;
+    session_start();
+}
 
 return [
 
