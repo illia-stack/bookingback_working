@@ -30,45 +30,68 @@
 
         // Validate the input
         $name = trim($data->name ?? '');
+
         $email = strtolower(trim($data->email ?? ''));
+
         $password = $data->password ?? '';
+
         $errors = [];
 
 
 
         // Name validation
         if ($name === '') {
+
             $errors['name'][] = "Name is required";
+
         } elseif (strlen($name) < 2) {
+
             $errors['name'][] = "Name must be at least 2 characters";
+
         }
 
 
         // Email validation
         if ($email === '') {
+
             $errors['email'][] = "Email is required";
+
         } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+
             $errors['email'][] = "Invalid email format";
+
         }
 
 
         // Password validation (granular)
         if ($password === '') {
+
             $errors['password'][] = "Password is required";
+
         } else {
+
             if (strlen($password) < 8) {
+
                 $errors['password'][] = "Must be at least 8 characters";
+
             }
             if (!preg_match('/[A-Z]/', $password)) {
+
                 $errors['password'][] = "Must include at least one uppercase letter";
+
             }
             if (!preg_match('/[a-z]/', $password)) {
+
                 $errors['password'][] = "Must include at least one lowercase letter";
+
             }
             if (!preg_match('/\d/', $password)) {
+
                 $errors['password'][] = "Must include at least one number";
             }
+
             if (!preg_match('/[\W_]/', $password)) {
+
                 $errors['password'][] = "Must include at least one special character";
             }
         }
@@ -98,6 +121,7 @@
             $errors['email'][] = "Email is already registered";
 
             http_response_code(422);
+            
             echo json_encode([
                 "success" => false,
                 "errors" => $errors

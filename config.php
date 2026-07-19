@@ -4,9 +4,6 @@
 
     header('Content-Type: application/json');
 
-
-    
-    // ✅ Read from environment (Render provides this)
     $stripeSecretKey = getenv('STRIPE_SECRET_KEY') ?: ($_ENV['STRIPE_SECRET_KEY'] ?? null);
 
     if (!$stripeSecretKey) {
