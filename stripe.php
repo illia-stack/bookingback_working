@@ -83,7 +83,17 @@ $stmt->execute([
 
 $booking=$stmt->fetch();
 
+if ($booking && $booking["status"] === "paid") {
 
+    http_response_code(409);
+
+    echo json_encode([
+        "success" => false,
+        "message" => "Booking already paid"
+    ]);
+
+    exit;
+}
 
 if(!$booking){
 

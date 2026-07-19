@@ -1,66 +1,9 @@
 <?php
 
-header("Content-Type: application/json");
+require_once __DIR__ . '/../includes/bootstrap.php';
 
 
-// -------------------------
-// RATE LIMIT
-// -------------------------
-
-$ip = $_SERVER['REMOTE_ADDR'];
-
-$limit = 5;
-
-$window = 60;
-
-$rateFile = sys_get_temp_dir() . "/contact_" . md5($ip);
-
-
-if (file_exists($rateFile)) {
-
-    $rateData = json_decode(
-        file_get_contents($rateFile),
-        true
-    );
-
-
-    if (
-        $rateData &&
-        $rateData['time'] > time() - $window
-    ) {
-
-        if ($rateData['count'] >= $limit) {
-
-            http_response_code(429);
-
-            echo json_encode([
-                "success" => false,
-                "message" => "Too many requests"
-            ]);
-
-            exit;
-        }
-
-
-        $rateData['count']++;
-
-    } else {
-
-        $rateData = [
-            "count" => 1,
-            "time" => time()
-        ];
-
-    }
-
-} else {
-
-    $rateData = [
-        "count" => 1,
-        "time" => time()
-    ];
-
-}
+rate_limit("contact", 5, 60);
 
 
 file_put_contents(
@@ -203,6 +146,10 @@ if (!$apiKey) {
 }
 
 
+$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+$email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+$subject = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
+$message = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
 
 $payload = [
 

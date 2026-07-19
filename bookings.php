@@ -68,6 +68,21 @@ if ($method === "POST") {
     $checkIn = strtotime($input['check_in']);
     $checkOut = strtotime($input['check_out']);
 
+    $today = strtotime(date('Y-m-d'));
+
+    if ($checkIn < $today) {
+
+        http_response_code(400);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Check-in cannot be in the past"
+        ]);
+
+        exit;
+    }
+
+
     if ($checkOut <= $checkIn) {
 
         http_response_code(400);
@@ -86,9 +101,50 @@ if ($method === "POST") {
         / 86400;
 
 
-    $total =
-        $days * $property['price_per_night'];
+    $total = $days * $property['price_per_night'];
 
+
+    $stmt = $pdo->prepare(
+
+            "SELECT COUNT(*)
+
+            FROM bookings
+
+            WHERE property_id = :property
+
+            AND status IN ('pending', 'paid')
+
+            AND check_in < :checkout
+
+            AND check_out > :checkin"
+
+    );
+
+    $stmt->execute([
+
+        ":property" => $input["property_id"],
+
+        ":checkin" => $input["check_in"],
+
+        ":checkout" => $input["check_out"]
+
+    ]);
+
+    
+    if ($stmt->fetchColumn() > 0) {
+
+        http_response_code(409);
+
+        echo json_encode([
+
+            "success" => false,
+
+            "message" => "Property already booked"
+
+        ]);
+
+        exit;
+    }
 
 
     $stmt = $pdo->prepare(

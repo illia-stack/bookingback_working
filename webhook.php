@@ -87,7 +87,7 @@ paid_at=NOW(),
 updated_at=NOW()
 
 WHERE id=:id
-
+AND status <> 'paid'
 "
 );
 
