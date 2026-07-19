@@ -1,7 +1,5 @@
 <?php
 
-$config = require __DIR__ . '/config.php';
-
 $db = $config['db'];
 
 try {

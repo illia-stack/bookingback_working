@@ -1,23 +1,14 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once __DIR__ . "/../../config/config.php";
 require_once __DIR__ . "/../../config/database.php";
 require_once __DIR__ . "/../../config/security.php";
 
-header("Content-Type: application/json");
-
-
 if (!isset($_SESSION['csrf_token'])) {
-
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-
 }
 
-
 echo json_encode([
-    "csrfToken" => $_SESSION['csrf_token']
+    "session_id" => session_id(),
+    "csrf" => $_SESSION['csrf_token']
 ]);

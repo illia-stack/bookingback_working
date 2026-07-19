@@ -1,9 +1,17 @@
 <?php
 
 if (session_status() === PHP_SESSION_NONE) {
+
+    session_set_cookie_params([
+        'lifetime' => 0,
+        'path' => '/',
+        'secure' => true,
+        'httponly' => true,
+        'samesite' => 'None'
+    ]);
+
     session_start();
 }
-
 
 header('Content-Type: application/json; charset=UTF-8');
 
@@ -66,14 +74,25 @@ function validate_csrf()
 {
     $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
-    echo json_encode([
-        "session_id" => session_id(),
-        "session_token" => $_SESSION['csrf_token'] ?? null,
-        "header_token" => $token
-    ]);
+    if (
+        empty($_SESSION['csrf_token']) ||
+        empty($token) ||
+        !hash_equals($_SESSION['csrf_token'], $token)
+    ) {
 
-    exit;
+        http_response_code(419);
+
+        echo json_encode([
+            "session_id" => session_id(),
+            "session_token" => $_SESSION['csrf_token'] ?? null,
+            "header_token" => $token,
+            "cookies" => $_COOKIE,
+        ]);
+
+        exit;
+    }
 }
+
 
 
 
