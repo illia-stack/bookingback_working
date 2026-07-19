@@ -2,6 +2,9 @@
 
     require_once __DIR__ . "/../includes/bootstrap.php";
 
+    ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
     rate_limit('login', 10, 60);
 
@@ -28,7 +31,7 @@
        
         validate_csrf();
             
-        $stmt = $conn->prepare("SELECT id, name, email, password, role FROM users WHERE email = :email");
+        $stmt = $pdo->prepare("SELECT id, name, email, password, role FROM users WHERE email = :email");
 
         $stmt->execute([':email' => $email]);
 
