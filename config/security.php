@@ -64,33 +64,16 @@ if (!headers_sent() && extension_loaded('zlib')) {
 
 function validate_csrf()
 {
+    $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 
-    $token =
-        $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    echo json_encode([
+        "session_id" => session_id(),
+        "session_token" => $_SESSION['csrf_token'] ?? null,
+        "header_token" => $token
+    ]);
 
-
-
-    if (
-        empty($_SESSION['csrf_token']) ||
-        empty($token) ||
-        !hash_equals(
-            $_SESSION['csrf_token'],
-            $token
-        )
-    ) {
-
-        http_response_code(419);
-
-        echo json_encode([
-            "success"=>false,
-            "message"=>"CSRF failed"
-        ]);
-
-        exit;
-    }
-
+    exit;
 }
-
 
 
 
