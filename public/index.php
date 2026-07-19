@@ -41,9 +41,16 @@ switch (true) {
     break;
 
     // Stripe
+
+    case $method === 'POST' && $path === '/stripe/webhook':
+    require __DIR__ . '/../routes/webhook.php';
+    break;
+    
     case str_starts_with($path, '/stripe'):
         require __DIR__ . '/../routes/stripe.php';
         break;
+
+    
 
     default:
         http_response_code(404);

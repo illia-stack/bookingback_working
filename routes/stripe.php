@@ -117,6 +117,10 @@ $session = \Stripe\Checkout\Session::create([
 
     ],
 
+    "client_reference_id" => (string)$booking["id"],
+
+    "metadata" => ["booking_id" => $booking["id"]],
+
 
     "line_items"=>[[
 
@@ -142,7 +146,7 @@ $session = \Stripe\Checkout\Session::create([
 
     "mode"=>"payment",
 
-
+    
     "success_url"=>
 
         $frontend .
