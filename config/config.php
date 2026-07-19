@@ -7,6 +7,10 @@ ini_set('session.cookie_path', '/');
 
 session_start();
 
+var_dump(getenv('DB_HOST'));
+var_dump(getenv('DB_DATABASE'));
+var_dump(getenv('DB_USERNAME'));
+exit;
 
 return [
 
