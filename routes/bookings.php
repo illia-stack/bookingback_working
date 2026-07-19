@@ -148,7 +148,7 @@ if ($method === "POST") {
 
             // temporary placeholder
             "checkout_url" =>
-                "https://your-frontend.onrender.com/success?booking_id=".$bookingId
+                "https://bookingback-working.onrender.com/success?booking_id=".$bookingId
 
         ],
 
