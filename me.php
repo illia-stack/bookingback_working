@@ -1,11 +1,16 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/includes/bootstrap.php';
 
-require_once __DIR__ . "/includes/bootstrap.php";
+if (!isset($_SESSION['user'])) {
+    echo json_encode([
+        "success" => true,
+        "user" => null
+    ]);
+    exit;
+}
 
 echo json_encode([
-    "user" => $_SESSION['user'] ?? null
+    "success" => true,
+    "user" => $_SESSION['user']
 ]);
