@@ -4,27 +4,12 @@ header("Content-Type: application/json");
 
 require_once __DIR__ . '/../middleware/auth.php';
 
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-
-
-if (
-    $_SERVER['REQUEST_METHOD'] !== "POST"
-    ||
-    $path !== "/stripe/create-session"
-) {
-
-    http_response_code(404);
+if ($_SERVER['REQUEST_METHOD'] !== "POST") {
+    http_response_code(405);
     exit;
-
 }
 
-
-require_once __DIR__ . '/../vendor/autoload.php';
-
-
-\Stripe\Stripe::setApiKey(
-    getenv("STRIPE_SECRET_KEY")
-);
+require_once __DIR__ . '/../config.php';
 
 
 
@@ -112,9 +97,16 @@ if(!$booking){
 
 
 
-$frontend =
-    getenv("FRONTEND_URL");
+$frontend = getenv("FRONTEND_URL");
 
+if (!$frontend) {
+    http_response_code(500);
+    echo json_encode([
+        "success" => false,
+        "message" => "Frontend URL not configured"
+    ]);
+    exit;
+}
 
 
 
