@@ -1,7 +1,7 @@
 <?php
 
 echo "BOOTSTRAP LOADED";
-exit;
+
 
     header("Access-Control-Allow-Origin: https://bookingfront-b9j1.onrender.com");
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
