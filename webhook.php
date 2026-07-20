@@ -1,7 +1,7 @@
 <?php
 
-require_once __DIR__ . '/../includes/bootstrap.php';
-require_once __DIR__ . "/../../vendor/autoload.php";
+require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
 \Stripe\Stripe::setApiKey(
     getenv("STRIPE_SECRET_KEY")
