@@ -1,16 +1,28 @@
 <?php
 
-    require_once __DIR__ . '/includes/bootstrap.php';
-    require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/vendor/autoload.php';
 
-    header('Content-Type: application/json');
+$stripeSecretKey = getenv('STRIPE_SECRET_KEY') ?: ($_ENV['STRIPE_SECRET_KEY'] ?? null);
 
-    $stripeSecretKey = getenv('STRIPE_SECRET_KEY') ?: ($_ENV['STRIPE_SECRET_KEY'] ?? null);
+// ✅ DEBUG OUTPUT (JSON-safe)
+if (!$stripeSecretKey) {
+    echo json_encode([
+        "success" => false,
+        "debug" => "NO STRIPE KEY",
+        "env" => getenv('STRIPE_SECRET_KEY'),
+        "_ENV" => $_ENV['STRIPE_SECRET_KEY'] ?? null
+    ]);
+    exit;
+}
 
-    if (!$stripeSecretKey) {
-        throw new Exception("Stripe secret key not found");
-    }
+// ✅ OPTIONAL: confirm it exists
+echo json_encode([
+    "success" => true,
+    "debug" => "STRIPE KEY FOUND",
+    "length" => strlen($stripeSecretKey)
+]);
+exit;
 
-    \Stripe\Stripe::setApiKey($stripeSecretKey);
-
-?>
+// 🚨 comment this during debug
+// \Stripe\Stripe::setApiKey($stripeSecretKey);
