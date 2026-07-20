@@ -36,6 +36,8 @@ error_reporting(E_ALL);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        error_log("EMAIL: " . $email);
+error_log("USER: " . print_r($user, true));
 
         $valid = $user && password_verify($password, $user['password']);
 
