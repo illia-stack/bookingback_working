@@ -14,10 +14,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // ✅ LOAD STRIPE LIBRARY
 require_once __DIR__ . '/vendor/autoload.php';
 
+// ✅ 1. Load config FIRST (this loads Stripe + API key)
+require_once __DIR__ . '/config.php';
+
 // ✅ LOAD CONFIG (SETS API KEY)
 require_once __DIR__ . '/middleware/auth.php';
 
-require_once __DIR__ . '/includes/bootstrap.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] !== "POST") {
     http_response_code(405);
