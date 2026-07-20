@@ -5,24 +5,14 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 $stripeSecretKey = getenv('STRIPE_SECRET_KEY') ?: ($_ENV['STRIPE_SECRET_KEY'] ?? null);
 
-// ✅ DEBUG OUTPUT (JSON-safe)
 if (!$stripeSecretKey) {
+    http_response_code(500);
     echo json_encode([
         "success" => false,
-        "debug" => "NO STRIPE KEY",
-        "env" => getenv('STRIPE_SECRET_KEY'),
-        "_ENV" => $_ENV['STRIPE_SECRET_KEY'] ?? null
+        "message" => "Stripe key not configured"
     ]);
     exit;
 }
 
-// ✅ OPTIONAL: confirm it exists
-echo json_encode([
-    "success" => true,
-    "debug" => "STRIPE KEY FOUND",
-    "length" => strlen($stripeSecretKey)
-]);
-exit;
-
-// 🚨 comment this during debug
-// \Stripe\Stripe::setApiKey($stripeSecretKey);
+// ✅ SET STRIPE KEY (THIS IS THE REAL GOAL)
+\Stripe\Stripe::setApiKey($stripeSecretKey);
