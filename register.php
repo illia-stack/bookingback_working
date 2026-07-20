@@ -1,13 +1,14 @@
 <?php
-
+error_log("REGISTER FILE START");
 require_once __DIR__ . "/includes/bootstrap.php";
-
+error_log("BOOTSTRAP FINISHED");
 error_log("REGISTER START");
 
     ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', '/tmp/php-errors.log');
+ini_set('error_log', 'php://stderr');
 error_reporting(E_ALL);
 
 
@@ -159,10 +160,11 @@ error_log("Email checked");
 ");
 
         $stmt->execute([
-            ':name' => $name,
-            ':email' => $email,
-            ':password' => $hashedPassword
-        ]);
+    ':name' => $name,
+    ':email' => $email,
+    ':password' => $hashedPassword,
+    ':role' => 'user'
+]);
 
         error_log("Insert finished");
 
