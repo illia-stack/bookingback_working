@@ -6,7 +6,6 @@ require_once __DIR__ . "/includes/bootstrap.php";
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-    header("Content-Type: application/json");
 
     
     try {
@@ -117,9 +116,11 @@ error_reporting(E_ALL);
 
 
         //Avoid an email duplication
-        $stmt = $conn->prepare("SELECT id FROM users WHERE email = :email");
+        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = :email");
 
-        $stmt->execute([':email' => $email]);
+        $stmt->execute([
+            ':email' => $email
+        ]);
 
         if ($stmt->fetch()) {
             $errors['email'][] = "Email is already registered";
@@ -135,18 +136,16 @@ error_reporting(E_ALL);
         }
                 
 
-        // Passwort hash
+        // Hash password
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT, [
             'cost' => 12
         ]);
-
-
-        
 
         // Insert user
         $stmt = $pdo->prepare("
             INSERT INTO users (name, email, password)
             VALUES (:name, :email, :password)
+            RETURNING id, role
         ");
 
         $stmt->execute([
@@ -155,12 +154,26 @@ error_reporting(E_ALL);
             ':password' => $hashedPassword
         ]);
 
+        $newUser = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$newUser) {
+            throw new Exception("User creation failed.");
+        }
+
+        session_regenerate_id(true);
+
+        $_SESSION['user'] = [
+            "id" => $newUser["id"],
+            "name" => $name,
+            "email" => $email,
+            "role" => $newUser["role"] ?? "user"
+        ];
+
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
         echo json_encode([
             "success" => true,
-            "user" => [
-                "name" => $name,
-                "email" => $email
-            ]
+            "user" => $_SESSION['user']
         ]);
 
     } catch (Throwable $e) {
