@@ -1,11 +1,19 @@
 <?php
 
+echo "BOOTSTRAP LOADED";
+exit;
+
     header("Access-Control-Allow-Origin: https://bookingfront-b9j1.onrender.com");
     header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
     header("Access-Control-Allow-Headers: Content-Type, X-CSRF-Token");
     header("Access-Control-Allow-Credentials: true");
     header("Content-Type: application/json");
 
+    file_put_contents(
+    '/tmp/debug.txt',
+    "bootstrap reached\n",
+    FILE_APPEND
+);
 
     if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
         http_response_code(200);
