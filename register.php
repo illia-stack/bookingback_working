@@ -2,9 +2,14 @@
 
 require_once __DIR__ . "/includes/bootstrap.php";
 
+error_log("REGISTER START");
+
     ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
+ini_set('log_errors', 1);
+ini_set('error_log', '/tmp/php-errors.log');
 error_reporting(E_ALL);
+
 
 
     
@@ -29,7 +34,7 @@ error_reporting(E_ALL);
         }
 
 
-
+error_log("Reached validation");
 
         // Validate the input
         $name = trim($data->name ?? '');
@@ -54,6 +59,8 @@ error_reporting(E_ALL);
         }
 
 
+        
+
         // Email validation
         if ($email === '') {
 
@@ -64,7 +71,7 @@ error_reporting(E_ALL);
             $errors['email'][] = "Invalid email format";
 
         }
-
+error_log("Email checked");
 
         // Password validation (granular)
         if ($password === '') {
@@ -140,19 +147,24 @@ error_reporting(E_ALL);
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT, [
             'cost' => 12
         ]);
+        error_log("Password hashed");
+
+        error_log("About to insert");
 
         // Insert user
         $stmt = $pdo->prepare("
-            INSERT INTO users (name, email, password)
-            VALUES (:name, :email, :password)
-            RETURNING id, role
-        ");
+    INSERT INTO users (name, email, password, role)
+    VALUES (:name, :email, :password, :role)
+    RETURNING id, role
+");
 
         $stmt->execute([
             ':name' => $name,
             ':email' => $email,
             ':password' => $hashedPassword
         ]);
+
+        error_log("Insert finished");
 
         $newUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -177,7 +189,7 @@ error_reporting(E_ALL);
         ]);
 
     } catch (Throwable $e) {
-        error_log($e->getMessage());
+    error_log($e->__toString());
         http_response_code(500);
 
         echo json_encode([
