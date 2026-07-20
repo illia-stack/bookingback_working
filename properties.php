@@ -5,15 +5,11 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 require_once __DIR__ . "/includes/bootstrap.php";
-// GET /properties/{id}
 
 
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+if (isset($_GET['id'])) {
 
-
-if (preg_match('#^/properties/(\d+)$#', $path, $matches)) {
-
-    $id = (int)$matches[1];
+    $id = (int)$_GET['id'];
 
     $stmt = $pdo->prepare(
         "SELECT *
@@ -25,7 +21,7 @@ if (preg_match('#^/properties/(\d+)$#', $path, $matches)) {
         ':id' => $id
     ]);
 
-    $property = $stmt->fetch();
+    $property = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$property) {
 
@@ -52,7 +48,7 @@ if (preg_match('#^/properties/(\d+)$#', $path, $matches)) {
 
 
 
-// GET /properties
+// GET all properties
 
 $stmt = $pdo->query(
     "SELECT *
@@ -60,7 +56,7 @@ $stmt = $pdo->query(
      ORDER BY created_at DESC"
 );
 
-$properties = $stmt->fetchAll();
+$properties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 echo json_encode([
