@@ -18,7 +18,7 @@
 
     } catch (PDOException $e) {
         http_response_code(500);
-        error_log($e->getMessage());
-        die("Database connection failed");
+        echo $e->getMessage();
+exit;
     }
 ?>
