@@ -1,6 +1,6 @@
 <?php
 
-require_once __DIR__ . '/middleware/auth.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
 header("Content-Type: application/json");
 
@@ -138,6 +138,15 @@ if ($method === "POST") {
     }
 
 
+    if (!isset($_SESSION['user'])) {
+        http_response_code(401);
+        echo json_encode([
+            "success" => false,
+            "message" => "Unauthorized"
+        ]);
+        exit;
+    }
+    
 
     $stmt=$pdo->prepare(
 
