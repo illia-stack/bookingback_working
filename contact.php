@@ -1,270 +1,150 @@
 <?php
 
-require_once __DIR__ . '/../includes/bootstrap.php';
+require_once __DIR__ . '/includes/bootstrap.php';
 
+// ✅ Only POST
+if ($_SERVER['REQUEST_METHOD'] !== "POST") {
+    http_response_code(405);
+    echo json_encode([
+        "success" => false,
+        "message" => "Method not allowed"
+    ]);
+    exit;
+}
 
+// ✅ RATE LIMIT (protect public endpoint)
 rate_limit("contact", 5, 60);
 
-
-file_put_contents(
-    $rateFile,
-    json_encode($rateData)
-);
-
-
-
-
 // -------------------------
-// CHECK CONTENT TYPE
+// VALIDATE CONTENT TYPE
 // -------------------------
-
-if (
-    strpos(
-        $_SERVER['CONTENT_TYPE'] ?? '',
-        'application/json'
-    ) === false
-) {
-
+if (strpos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') === false) {
     http_response_code(415);
-
     echo json_encode([
         "success" => false,
         "message" => "Invalid content type"
     ]);
-
     exit;
 }
 
-
-
 // -------------------------
-// READ JSON
+// PARSE INPUT
 // -------------------------
+$input = json_decode(file_get_contents("php://input"), true);
 
-$data = json_decode(
-    file_get_contents("php://input"),
-    true
-);
-
-
-if (!is_array($data)) {
-
+if (json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
-
     echo json_encode([
         "success" => false,
         "message" => "Invalid JSON"
     ]);
-
     exit;
 }
 
-
+// Honeypot (anti-spam)
+if (!empty($input['website'])) {
+    http_response_code(400);
+    exit;
+}
 
 // -------------------------
 // VALIDATION
 // -------------------------
+$name = trim($input['name'] ?? '');
+$email = trim($input['email'] ?? '');
+$subject = trim($input['subject'] ?? 'No subject');
+$message = trim($input['message'] ?? '');
 
-$name = trim($data['name'] ?? '');
-
-$email = trim($data['email'] ?? '');
-
-$subject = trim($data['subject'] ?? 'No subject');
-
-$message = trim($data['message'] ?? '');
-
-
-
-if (
-    !$name ||
-    !$email ||
-    !$message
-) {
-
+if (!$name || !$email || !$message) {
     http_response_code(400);
-
     echo json_encode([
         "success" => false,
         "message" => "Missing fields"
     ]);
-
     exit;
 }
 
-
-
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
     http_response_code(400);
-
     echo json_encode([
         "success" => false,
         "message" => "Invalid email"
     ]);
-
     exit;
 }
 
-
-
-if (
-    strlen($name) > 100 ||
-    strlen($email) > 150 ||
-    strlen($subject) > 150 ||
-    strlen($message) > 5000
-) {
-
-    http_response_code(400);
-
-    echo json_encode([
-        "success" => false,
-        "message" => "Input too long"
-    ]);
-
-    exit;
-}
-
-
+// -------------------------
+// SANITIZE
+// -------------------------
+$nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+$emailSafe = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
+$subjectSafe = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
+$messageSafe = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
 
 // -------------------------
-// RESEND EMAIL
+// SEND EMAIL (RESEND)
 // -------------------------
-
-$apiKey = getenv("RESEND_API_KEY");
-
+$apiKey = getenv('RESEND_API_KEY');
 
 if (!$apiKey) {
-
     http_response_code(500);
-
     echo json_encode([
         "success" => false,
-        "message" => "Missing email configuration"
+        "message" => "Email service not configured"
     ]);
-
     exit;
 }
 
-
-$name = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-$email = htmlspecialchars($email, ENT_QUOTES, 'UTF-8');
-$subject = htmlspecialchars($subject, ENT_QUOTES, 'UTF-8');
-$message = nl2br(htmlspecialchars($message, ENT_QUOTES, 'UTF-8'));
-
 $payload = [
-
     "from" => "onboarding@resend.dev",
-
-    "to" => [
-        "illiashapshalov38@gmail.com"
-    ],
-
-    "subject" => "[Contact] ".$subject,
-
+    "to" => ["illiashapshalov38@gmail.com"],
+    "subject" => "[Contact] " . $subjectSafe,
     "html" => "
-
-        <h3>New contact message</h3>
-
-        <p>
-        <b>Name:</b> {$name}
-        </p>
-
-        <p>
-        <b>Email:</b> {$email}
-        </p>
-
-        <p>
-        <b>Message:</b><br>
-        {$message}
-        </p>
-
+        <h3>New message</h3>
+        <p><b>Name:</b> $nameSafe</p>
+        <p><b>Email:</b> $emailSafe</p>
+        <p><b>Message:</b><br>$messageSafe</p>
     "
-
 ];
 
+$ch = curl_init("https://api.resend.com/emails");
 
-
-
-// -------------------------
-// CURL REQUEST
-// -------------------------
-
-$ch = curl_init(
-    "https://api.resend.com/emails"
-);
-
-
-curl_setopt_array($ch,[
-
+curl_setopt_array($ch, [
     CURLOPT_POST => true,
-
     CURLOPT_RETURNTRANSFER => true,
-
     CURLOPT_HTTPHEADER => [
-
-        "Authorization: Bearer ".$apiKey,
-
+        "Authorization: Bearer $apiKey",
         "Content-Type: application/json"
-
     ],
-
-    CURLOPT_POSTFIELDS =>
-        json_encode($payload)
-
+    CURLOPT_POSTFIELDS => json_encode($payload)
 ]);
 
-
 $response = curl_exec($ch);
-
-
-$status = curl_getinfo(
-    $ch,
-    CURLINFO_HTTP_CODE
-);
-
-
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $error = curl_error($ch);
-
 
 curl_close($ch);
 
-
-
+// -------------------------
+// RESPONSE
+// -------------------------
 if ($error) {
-
     http_response_code(500);
-
     echo json_encode([
-        "success"=>false,
-        "message"=>"Email error"
+        "success" => false,
+        "message" => "Email service error"
     ]);
-
     exit;
 }
 
-
-
-if ($status >= 200 && $status < 300) {
-
-
+if ($httpCode >= 200 && $httpCode < 300) {
     echo json_encode([
-
-        "success"=>true
-
+        "success" => true
     ]);
-
-
 } else {
-
-
     http_response_code(500);
-
     echo json_encode([
-
-        "success"=>false,
-
-        "message"=>"Email service error"
-
+        "success" => false,
+        "message" => "Email service error"
     ]);
-
 }
