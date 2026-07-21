@@ -3,7 +3,7 @@
     $dbname = getenv('DB_NAME');
     $user = getenv('DB_USER');
     $password = getenv('DB_PASSWORD');
-    $port = getenv('DB_PORT') ?: "6543"; // 👈 Pooler default
+    $port = getenv('DB_PORT') ?: "6543"; 
 
     try {
         $pdo = new PDO(
@@ -17,8 +17,16 @@
         );
 
     } catch (PDOException $e) {
+
+        error_log($e->getMessage());
+
         http_response_code(500);
-        echo $e->getMessage();
-exit;
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Database connection failed"
+        ]);
+
+        exit;
     }
 ?>

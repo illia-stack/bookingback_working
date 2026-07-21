@@ -1,11 +1,10 @@
 <?php
 
-require_once __DIR__ . "/includes/bootstrap.php";
-    ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+    require_once __DIR__ . "/includes/bootstrap.php";
+    
 
     rate_limit('login', 10, 60);
+
 
     $data = json_decode(file_get_contents("php://input"));
 
@@ -14,6 +13,7 @@ error_reporting(E_ALL);
         echo json_encode(["success" => false, "message" => "Invalid JSON"]);
         exit();
     }
+
 
     $email = strtolower(trim($data->email ?? ''));
 
@@ -26,6 +26,7 @@ error_reporting(E_ALL);
     }
 
 
+
     try {
        
         validate_csrf();
@@ -36,8 +37,7 @@ error_reporting(E_ALL);
 
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        error_log("EMAIL: " . $email);
-error_log("USER: " . print_r($user, true));
+        
 
         $valid = $user && password_verify($password, $user['password']);
 

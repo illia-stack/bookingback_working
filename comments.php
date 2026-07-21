@@ -15,6 +15,7 @@
 
     require_once __DIR__ . "/../includes/db.php";
 
+
     rate_limit('comments', 10, 60);
 
 
@@ -94,6 +95,9 @@
             exit();
         }
 
+
+        //INSERT
+        
         try {
             $stmt = $conn->prepare("
                 INSERT INTO comments (product_id, username, comment) 

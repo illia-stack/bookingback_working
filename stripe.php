@@ -1,6 +1,5 @@
 <?php
 
-// ✅ CORS FIRST
 header("Access-Control-Allow-Origin: https://bookingfront-b9j1.onrender.com");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type, X-CSRF-Token");
@@ -11,13 +10,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit();
 }
 
-// ✅ LOAD STRIPE LIBRARY
+//Load Stripe library
 require_once __DIR__ . '/vendor/autoload.php';
 
-// ✅ 1. Load config FIRST (this loads Stripe + API key)
+// This loads Stripe + API key)
 require_once __DIR__ . '/config.php';
 
-// ✅ LOAD CONFIG (SETS API KEY)
 require_once __DIR__ . '/middleware/auth.php';
 
 
@@ -43,11 +41,8 @@ if (
     http_response_code(400);
 
     echo json_encode([
-
         "success"=>false,
-
         "message"=>"Missing booking id"
-
     ]);
 
     exit;
@@ -55,7 +50,7 @@ if (
 
 
 
-// get booking
+//Get booking
 
 $stmt = $pdo->prepare(
 "SELECT 
@@ -80,6 +75,7 @@ $stmt->execute([
 ":user_id"=>$_SESSION['user']['id']
 
 ]);
+
 
 
 $booking=$stmt->fetch();
@@ -184,7 +180,7 @@ $session = \Stripe\Checkout\Session::create([
 
 
 
-// save stripe session id
+// Save stripe session id
 
 $stmt=$pdo->prepare(
 
@@ -213,11 +209,8 @@ $stmt->execute([
 echo json_encode([
 
     "success"=>true,
-
     "data"=>[
-
         "checkout_url"=>$session->url
-
     ]
 
 ]);

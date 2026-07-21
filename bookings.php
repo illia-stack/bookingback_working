@@ -66,9 +66,12 @@ if ($method === "POST") {
         exit;
     }
 
-    $checkIn = strtotime($input['check_in']);
-    $checkOut = strtotime($input['check_out']);
 
+
+    $checkIn = strtotime($input['check_in']);
+
+    $checkOut = strtotime($input['check_out']);
+    
     if ($checkIn === false || $checkOut === false) {
 
         http_response_code(400);
@@ -109,6 +112,7 @@ if ($method === "POST") {
         exit;
     }
 
+
     $days =
         (strtotime($input['check_out']) -
         strtotime($input['check_in']))
@@ -117,6 +121,8 @@ if ($method === "POST") {
 
     $total = $days * $property['price_per_night'];
 
+
+    // INSERT INTO TABLE
 
     try {
 
@@ -271,4 +277,5 @@ if ($method === "GET") {
 
     exit;
 
+    
 }

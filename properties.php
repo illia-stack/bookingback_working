@@ -1,10 +1,7 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once __DIR__ . "/includes/bootstrap.php";
+
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
@@ -22,6 +19,7 @@ if (isset($_GET['id'])) {
         ':id' => $id
     ]);
 
+    
     $property = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$property) {
@@ -49,7 +47,7 @@ if (isset($_GET['id'])) {
 
 
 
-// GET all properties
+// Get all properties
 
 $stmt = $pdo->query(
     "SELECT *

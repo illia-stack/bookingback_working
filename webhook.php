@@ -1,7 +1,9 @@
 <?php
 
 require_once __DIR__ . '/includes/bootstrap.php';
+
 require_once __DIR__ . '/vendor/autoload.php';
+
 
 \Stripe\Stripe::setApiKey(
     getenv("STRIPE_SECRET_KEY")
@@ -10,6 +12,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 $payload = @file_get_contents("php://input");
 
 $sigHeader = $_SERVER["HTTP_STRIPE_SIGNATURE"] ?? "";
+
 
 try {
 
@@ -46,7 +49,10 @@ if ($event->type !== "checkout.session.completed") {
     exit;
 }
 
+
+
 $session = $event->data->object;
+
 
 $stmt = $pdo->prepare(
 
@@ -62,14 +68,16 @@ $stmt->execute([
 
 ]);
 
+
+
 $booking = $stmt->fetch();
 
 if (!$booking) {
-
     http_response_code(404);
     exit;
-
 }
+
+
 
 $stmt = $pdo->prepare(
 
@@ -90,6 +98,7 @@ WHERE id=:id
 AND status <> 'paid'
 "
 );
+
 
 $stmt->execute([
 

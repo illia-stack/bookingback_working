@@ -14,5 +14,5 @@ if (!$stripeSecretKey) {
     exit;
 }
 
-// ✅ SET STRIPE KEY (THIS IS THE REAL GOAL)
+//  SET STRIPE KEY 
 \Stripe\Stripe::setApiKey($stripeSecretKey);

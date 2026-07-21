@@ -1,24 +1,13 @@
 <?php
-error_log("REGISTER FILE START");
-require_once __DIR__ . "/includes/bootstrap.php";
-error_log("BOOTSTRAP FINISHED");
-error_log("REGISTER START");
 
-    ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-ini_set('log_errors', 1);
-ini_set('error_log', '/tmp/php-errors.log');
-ini_set('error_log', 'php://stderr');
-error_reporting(E_ALL);
-
-
-
+    require_once __DIR__ . "/includes/bootstrap.php";
     
     try {
         
         rate_limit('register', 5, 60); // 5 requests per minute
 
-        // 🔐 Check the CSRF 
+
+        //  Check the CSRF 
         validate_csrf();
 
     
@@ -35,7 +24,7 @@ error_reporting(E_ALL);
         }
 
 
-error_log("Reached validation");
+        error_log("Reached validation");
 
         // Validate the input
         $name = trim($data->name ?? '');
@@ -72,7 +61,9 @@ error_log("Reached validation");
             $errors['email'][] = "Invalid email format";
 
         }
-error_log("Email checked");
+
+        error_log("Email checked");
+
 
         // Password validation (granular)
         if ($password === '') {
@@ -148,25 +139,28 @@ error_log("Email checked");
         $hashedPassword = password_hash($password, PASSWORD_BCRYPT, [
             'cost' => 12
         ]);
+
         error_log("Password hashed");
 
         error_log("About to insert");
 
+
         // Insert user
         $stmt = $pdo->prepare("
-    INSERT INTO users (name, email, password, role)
-    VALUES (:name, :email, :password, :role)
-    RETURNING id, role
-");
+            INSERT INTO users (name, email, password, role)
+            VALUES (:name, :email, :password, :role)
+            RETURNING id, role
+        ");
 
         $stmt->execute([
-    ':name' => $name,
-    ':email' => $email,
-    ':password' => $hashedPassword,
-    ':role' => 'user'
-]);
+            ':name' => $name,
+            ':email' => $email,
+            ':password' => $hashedPassword,
+            ':role' => 'user'
+        ]);
 
         error_log("Insert finished");
+
 
         $newUser = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -174,7 +168,9 @@ error_log("Email checked");
             throw new Exception("User creation failed.");
         }
 
+
         session_regenerate_id(true);
+
 
         $_SESSION['user'] = [
             "id" => $newUser["id"],
@@ -190,8 +186,9 @@ error_log("Email checked");
             "user" => $_SESSION['user']
         ]);
 
+
     } catch (Throwable $e) {
-    error_log($e->__toString());
+        error_log($e->__toString());
         http_response_code(500);
 
         echo json_encode([

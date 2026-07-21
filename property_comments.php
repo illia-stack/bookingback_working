@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
+
 header("Content-Type: application/json");
 
 
@@ -65,11 +66,8 @@ if ($method === "GET") {
 
 
     echo json_encode([
-
         "success"=>true,
-
         "data"=>$stmt->fetchAll()
-
     ]);
 
 
@@ -105,11 +103,8 @@ if ($method === "POST") {
 
 
         echo json_encode([
-
             "success"=>false,
-
             "message"=>"Missing data"
-
         ]);
 
         exit;
@@ -126,11 +121,8 @@ if ($method === "POST") {
         http_response_code(400);
 
         echo json_encode([
-
             "success"=>false,
-
             "message"=>"Comment too long"
-
         ]);
 
         exit;
@@ -183,9 +175,7 @@ if ($method === "POST") {
 
 
     echo json_encode([
-
         "success"=>true
-
     ]);
 
 

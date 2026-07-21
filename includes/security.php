@@ -3,7 +3,7 @@
     function validate_csrf(){
 
         if (!isset($_SESSION['user'])) {
-            return; // ✅ allow guests
+            return; //Allow guests
         }
 
         if(function_exists('getallheaders')){
