@@ -69,6 +69,19 @@ if ($method === "POST") {
     $checkIn = strtotime($input['check_in']);
     $checkOut = strtotime($input['check_out']);
 
+    if ($checkIn === false || $checkOut === false) {
+
+        http_response_code(400);
+
+        echo json_encode([
+            "success" => false,
+            "message" => "Invalid dates"
+        ]);
+
+        exit;
+    }
+    
+
     $today = strtotime(date('Y-m-d'));
 
     if ($checkIn < $today) {
@@ -105,94 +118,81 @@ if ($method === "POST") {
     $total = $days * $property['price_per_night'];
 
 
-    $stmt = $pdo->prepare(
+    try {
 
-            "SELECT COUNT(*)
+        $stmt = $pdo->prepare(
 
-            FROM bookings
+            "INSERT INTO bookings (
+                user_id,
+                property_id,
+                check_in,
+                check_out,
+                total_price,
+                status,
+                created_at,
+                updated_at
+            )
+            VALUES (
+                :user_id,
+                :property_id,
+                :check_in,
+                :check_out,
+                :total_price,
+                'pending',
+                NOW(),
+                NOW()
+            )
+            RETURNING id
+            "
 
-            WHERE property_id = :property
+        );
 
-            AND status IN ('pending', 'paid')
 
-            AND check_in < :checkout
+        $stmt->execute([
+            ':user_id' => $userId,
+            ':property_id' => $input['property_id'],
+            ':check_in' => $input['check_in'],
+            ':check_out' => $input['check_out'],
+            ':total_price' => $total
+        ]);
 
-            AND check_out > :checkin"
 
-    );
+        $bookingId = $stmt->fetchColumn();
 
-    $stmt->execute([
+        if (!$bookingId) {
+            throw new RuntimeException("Booking creation failed.");
+        }
 
-        ":property" => $input["property_id"],
+    } catch (PDOException $e) {
 
-        ":checkin" => $input["check_in"],
+        if (
+            $e->getCode() === '23P01' &&
+            str_contains($e->getMessage(), 'no_overlapping_bookings')
+        ) {
 
-        ":checkout" => $input["check_out"]
+            http_response_code(409);
 
-    ]);
+            echo json_encode([
+                "success" => false,
+                "message" => "Property already booked"
+            ]);
 
-    
-    if ($stmt->fetchColumn() > 0) {
+            exit;
+        }
 
-        http_response_code(409);
+        throw $e;
+
+    } catch (RuntimeException $e) {
+
+        http_response_code(500);
 
         echo json_encode([
-
             "success" => false,
-
-            "message" => "Property already booked"
-
+            "message" => "Booking creation failed"
         ]);
 
         exit;
     }
-
-
-    $stmt = $pdo->prepare(
-
-        "INSERT INTO bookings
-        (
-            user_id,
-            property_id,
-            check_in,
-            check_out,
-            total_price,
-            status,
-            created_at,
-            updated_at
-        )
-        VALUES
-        (
-            :user_id,
-            :property_id,
-            :check_in,
-            :check_out,
-            :total_price,
-            'pending',
-            NOW(),
-            NOW()
-        )"
-
-    );
-
-
-    $stmt->execute([
-
-        ':user_id' => $userId,
-
-        ':property_id' => $input['property_id'],
-
-        ':check_in' => $input['check_in'],
-
-        ':check_out' => $input['check_out'],
-
-        ':total_price' => $total
-
-    ]);
-
-
-    $bookingId = $pdo->lastInsertId();
-
 
 
     echo json_encode([
